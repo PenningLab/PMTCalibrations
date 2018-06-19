@@ -45,4 +45,16 @@ Go to `localhost:[local_port]`
 
 ## Reading out DDC10 .bin file
 
-###
+#### Read event into array
+
+Due to size of array required to read in all data (in most cases) plots are made on event by event basis
+
+`BinFileReader.ReadBinFile([filename],[number\_of\_channels],[event#])`
+
+#### Convert .bin file to .txt
+
+`BinFileReader.B2T([filename],[number\_of\_channels],[channel])`
+
+channel: channel to be converted
+
+Output: creates a .txt file with the data for one channel. Output filename is same as input (different extension obviously)
