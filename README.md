@@ -45,6 +45,8 @@ Go to `localhost:[local_port]`
 
 ## Reading out DDC10 .bin file
 
+Use scripts in `binaries/BinFlieReader2lk.py`
+
 #### Read event into array
 
 Due to size of array required to read in all data (in most cases) plots are made on event by event basis
