@@ -9,6 +9,11 @@ def ReadBinFileHeader(filename):
 	return number_of_events,length_per_waveform
 
 
+def bitfield(n):
+    tmp = [1 if digit=='1' else 0 for digit in bin(n)[2:]]
+    return tmp[::-1]
+
+
 def ReadBinFile(fName):
     #fName = "test.bin"
     waveInfo = {}
