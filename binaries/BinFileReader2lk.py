@@ -9,7 +9,54 @@ def ReadBinFileHeader(filename):
 	return number_of_events,length_per_waveform
 
 
-def ReadBinFilelk(filename,number_of_channels,event):
+def ReadBinFile(fName):
+    #fName = "test.bin"
+    waveInfo = {}
+    
+    fp = open(fName,"rb")
+    
+    numEvents = int(np.fromfile(fp,dtype=np.uint32,count=1))
+    waveInfo['numEvents'] = numEvents
+    numSamples = int(np.fromfile(fp,dtype=np.uint32,count=1))
+    waveInfo['numSamples'] = numSamples
+    chSelMask = int(np.fromfile(fp,dtype=np.uint32,count=1))
+    chMap = np.where(bitfield(chSelMask))[0]
+    waveInfo['chMap'] = chMap
+    numChannels = len(chMap)
+    waveInfo['numChannels'] = numChannels
+    byteOrderPattern = hex(int(np.fromfile(fp,dtype=np.uint32,count=1)))
+    
+    waveArr = np.zeros((numChannels,numEvents,numSamples),dtype=np.int16)
+    
+    for ievt in range(numEvents):
+        for ich in range(numChannels):
+            dummy = np.fromfile(fp,dtype=np.uint32,count=2)
+            waveTmp = np.fromfile(fp,dtype=np.int16,count=numSamples)
+            waveArr[ich,ievt,:] = waveTmp
+            dummy = np.fromfile(fp,dtype=np.uint32,count=1)
+    fp.close()
+    return (waveArr,waveInfo)
+
+
+def B2T(filename,channel):
+	waveform,waveInfo = ReadBinFile(filename)
+	if(channel>=len(waveInfo['chMap'])):
+		print("Cannot find channel. Check user supplied index")
+		return
+
+	s = filename.rstrip(".bin")
+	s += ".txt"
+	lend = "\n"
+	fout = open(s,"w")
+	for i in range(waveInfo['numEvents']):
+		fout.write("Event "+str(i)+str(lend))
+		for j in range(waveInfo['numSamples']):
+			s = str(waveform[channel,i,j])+lend
+			fout.write(s)
+	fout.close()
+
+
+def ReadBinFilelk_leg(filename,number_of_channels,event):
 	f = open(filename, "r")
 	binary_file = np.fromfile(f, dtype=np.int16)
 	bit1 = binary_file[0]
@@ -72,49 +119,5 @@ def B2T_leg(filename,number_of_channels,channel):
 	fout.close()
 	   
 
-def Read_DDC10_BinWaveCap_ChSel(fName):
-    #fName = "test.bin"
-    waveInfo = {}
-    
-    fp = open(fName,"rb")
-    
-    numEvents = int(np.fromfile(fp,dtype=np.uint32,count=1))
-    waveInfo['numEvents'] = numEvents
-    numSamples = int(np.fromfile(fp,dtype=np.uint32,count=1))
-    waveInfo['numSamples'] = numSamples
-    chSelMask = int(np.fromfile(fp,dtype=np.uint32,count=1))
-    chMap = np.where(bitfield(chSelMask))[0]
-    waveInfo['chMap'] = chMap
-    numChannels = len(chMap)
-    waveInfo['numChannels'] = numChannels
-    byteOrderPattern = hex(int(np.fromfile(fp,dtype=np.uint32,count=1)))
-    
-    waveArr = np.zeros((numChannels,numEvents,numSamples),dtype=np.int16)
-    
-    for ievt in range(numEvents):
-        for ich in range(numChannels):
-            dummy = np.fromfile(fp,dtype=np.uint32,count=2)
-            waveTmp = np.fromfile(fp,dtype=np.int16,count=numSamples)
-            waveArr[ich,ievt,:] = waveTmp
-            dummy = np.fromfile(fp,dtype=np.uint32,count=1)
-    fp.close()
-    return (waveArr,waveInfo)
 
-
-def B2T(filename,channel):
-	waveform,waveInfo = Read_DDC10_BinWaveCap_ChSel(filename)
-	if(channel>=len(waveInfo['chMap'])):
-		print("Cannot find channel. Check user supplied index")
-		return
-
-	s = filename.rstrip(".bin")
-	s += ".txt"
-	lend = "\n"
-	fout = open(s,"w")
-	for i in range(waveInfo['numEvents']):
-		fout.write("Event "+str(i)+str(lend))
-		for j in range(waveInfo['numSamples']):
-			s = str(waveform[channel,i,j])+lend
-			fout.write(s)
-	fout.close()
 
